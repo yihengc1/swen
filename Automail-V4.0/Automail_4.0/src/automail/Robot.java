@@ -2,6 +2,8 @@ package automail;
 
 import exceptions.ExcessiveDeliveryException;
 import exceptions.ItemTooHeavyException;
+import exceptions.RobotHasNoHands;
+import exceptions.RobotHasNoTube;
 import simulation.Clock;
 import simulation.IMailDelivery;
 
@@ -9,23 +11,23 @@ import simulation.IMailDelivery;
  * The robot delivers mail!
  */
 public class Robot {
+    /** Change to private modifier to protected for derived classes (e.g. FastRobot and BulkRobot) to access. */
+    protected static final int INDIVIDUAL_MAX_WEIGHT = 2000;
 
-    private static final int INDIVIDUAL_MAX_WEIGHT = 2000;
-
-    private IMailDelivery delivery;
-    private final String id;
+    protected IMailDelivery delivery;
+    protected  String id;
     /** Possible states the robot can be in */
     public enum RobotState { DELIVERING, WAITING, RETURNING }
-    private RobotState current_state;
-    private int current_floor;
-    private int destination_floor;
-    private MailPool mailPool;
-    private boolean receivedDispatch;
+    protected RobotState current_state;
+    protected int current_floor;
+    protected int destination_floor;
+    protected MailPool mailPool;
+    protected boolean receivedDispatch;
 
-    private MailItem deliveryItem = null;
-    private MailItem tube = null;
+    protected MailItem deliveryItem = null;
+    protected MailItem tube = null;
 
-    private int deliveryCounter;
+    protected int deliveryCounter;
     
 
     /**
@@ -110,7 +112,7 @@ public class Robot {
     /**
      * Sets the route for the robot
      */
-    private void setDestination() {
+    protected void setDestination() {   // change to protected for derived class to access
         /** Set the destination floor */
         destination_floor = deliveryItem.getDestFloor();
     }
@@ -119,7 +121,7 @@ public class Robot {
      * Generic function that moves the robot towards the destination
      * @param destination the floor towards which the robot is moving
      */
-    private void moveTowards(int destination) {
+    protected void moveTowards(int destination) {
         if(current_floor < destination){
             current_floor++;
         } else {
@@ -135,7 +137,7 @@ public class Robot {
      * Prints out the change in state
      * @param nextState the state to which the robot is transitioning
      */
-    private void changeState(RobotState nextState){
+    protected void changeState(RobotState nextState){
     	assert(!(deliveryItem == null && tube != null));
     	if (current_state != nextState) {
             System.out.printf("T: %3d > %7s changed from %s to %s%n", Clock.Time(), getIdTube(), current_state, nextState);
@@ -154,13 +156,13 @@ public class Robot {
 		return (deliveryItem == null && tube == null);
 	}
 
-	public void addToHand(MailItem mailItem) throws ItemTooHeavyException {
+	public void addToHand(MailItem mailItem) throws ItemTooHeavyException, RobotHasNoHands {
 		assert(deliveryItem == null);
 		deliveryItem = mailItem;
 		if (deliveryItem.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
 	}
 
-	public void addToTube(MailItem mailItem) throws ItemTooHeavyException {
+	public void addToTube(MailItem mailItem) throws ItemTooHeavyException, RobotHasNoTube {
 		assert(tube == null);
 		tube = mailItem;
 		if (tube.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();

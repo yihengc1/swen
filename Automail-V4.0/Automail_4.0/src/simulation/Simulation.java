@@ -6,6 +6,8 @@ import automail.MailPool;
 import com.unimelb.swen30006.wifimodem.WifiModem;
 import exceptions.ExcessiveDeliveryException;
 import exceptions.ItemTooHeavyException;
+import exceptions.RobotHasNoHands;
+import exceptions.RobotHasNoTube;
 import util.Configuration;
 import util.ReportDelivery;
 
@@ -83,7 +85,7 @@ public class Simulation {
 				{
 					automail.getRobots()[i].operate();
 				}
-			} catch (ExcessiveDeliveryException|ItemTooHeavyException e) {
+			} catch (ExcessiveDeliveryException|ItemTooHeavyException| RobotHasNoHands| RobotHasNoTube e) {
 				e.printStackTrace();
 				System.out.println("Simulation unable to complete.");
 				System.exit(0);

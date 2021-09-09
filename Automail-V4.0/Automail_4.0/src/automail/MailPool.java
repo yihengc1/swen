@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.ListIterator;
 
 import exceptions.ItemTooHeavyException;
+import exceptions.RobotHasNoHands;
+import exceptions.RobotHasNoTube;
 
 /**
  * addToPool is called when there are mail items newly arrived at the building to add to the MailPool or
@@ -36,31 +38,41 @@ public class MailPool {
 	/**
      * load up any waiting robots with mailItems, if any.
      */
-	public void loadItemsToRobot() throws ItemTooHeavyException {
+	public void loadItemsToRobot() throws ItemTooHeavyException, RobotHasNoTube, RobotHasNoHands {
 		//List available robots
 		ListIterator<Robot> i = robots.listIterator();
 		while (i.hasNext()) loadItem(i);
 	}
 	
 	//load items to the robot
-	private void loadItem(ListIterator<Robot> i) throws ItemTooHeavyException {
+	private void loadItem(ListIterator<Robot> i) throws ItemTooHeavyException, RobotHasNoTube, RobotHasNoHands {
 		Robot robot = i.next();
 		assert(robot.isEmpty());
 		// System.out.printf("P: %3d%n", pool.size());
 		ListIterator<Item> j = pool.listIterator();
 		if (pool.size() > 0) {
 			try {
-			robot.addToHand(j.next().mailItem); // hand first as we want higher priority delivered first
-			j.remove();
-			if (pool.size() > 0) {
-				robot.addToTube(j.next().mailItem);
-				j.remove();
-			}
-			robot.dispatch(); // send the robot off if it has any items to deliver
-			i.remove();       // remove from mailPool queue
+				if (robot instanceof BulkRobot) {
+					for (int ii = 0; pool.size() > 0 && ii < BulkRobot.MAX_MAILITEMS; ii++) {
+						robot.addToTube(j.next().mailItem);
+						j.remove();
+					}
+					robot.dispatch();
+					i.remove();
+				}
+				else { // Regular or Fast robots
+ 					robot.addToHand(j.next().mailItem); // hand first as we want higher priority delivered first
+					j.remove();
+					if (!(robot instanceof FastRobot) && pool.size() > 0) {
+						robot.addToTube(j.next().mailItem);
+						j.remove();
+					}
+					robot.dispatch(); // send the robot off if it has any items to deliver
+					i.remove();       // remove from mailPool queue
+				}
 			} catch (Exception e) { 
 	            throw e; 
-	        } 
+	        }
 		}
 	}
 
